@@ -1,0 +1,28 @@
+{
+  "name": "桜雨 - SakuraAme",
+  "short_name": "桜雨",
+  "description": "Zen Healing Experience - 日本の庭園で心を癒す",
+  "start_url": "/SAKURA-AME/",
+  "display": "standalone",
+  "background_color": "#1c1917",
+  "theme_color": "#4a0417",
+  "orientation": "portrait-primary",
+  "scope": "/SAKURA-AME/",
+  "icons": [
+    {
+      "src": "/SAKURA-AME/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/SAKURA-AME/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["music", "lifestyle", "health"],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
