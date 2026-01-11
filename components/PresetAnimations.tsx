@@ -43,7 +43,7 @@ interface PresetAnimationsProps {
   height: number;
 }
 
-const PresetAnimations: React.FC<PresetAnimationsProps> = ({ presetKey, width, height }) => {
+const PresetAnimations: React.FC<PresetAnimationsProps> = React.memo(({ presetKey, width, height }) => {
   const [petals, setPetals] = useState<Petal[]>([]);
   const [clouds, setClouds] = useState<Cloud[]>([]);
   const [lightnings, setLightnings] = useState<Lightning[]>([]);
@@ -301,8 +301,8 @@ const PresetAnimations: React.FC<PresetAnimationsProps> = ({ presetKey, width, h
   return (
     <div className="absolute inset-0 pointer-events-none z-25 overflow-hidden">
       {/* 花散らし - 花吹雪 */}
-      {presetKey === 'scatter' && (
-        <svg className="absolute inset-0 w-full h-full">
+      {presetKey === 'scatter' && petals.length > 0 && (
+        <svg className="absolute inset-0 w-full h-full" style={{ willChange: 'transform' }}>
           {petals.map(petal => (
             <g
               key={petal.id}
@@ -321,8 +321,8 @@ const PresetAnimations: React.FC<PresetAnimationsProps> = ({ presetKey, width, h
       )}
 
       {/* 狐の嫁入り - 雲 */}
-      {presetKey === 'fox' && (
-        <svg className="absolute inset-0 w-full h-full">
+      {presetKey === 'fox' && clouds.length > 0 && (
+        <svg className="absolute inset-0 w-full h-full" style={{ willChange: 'transform' }}>
           {clouds.map(cloud => (
             <g key={cloud.id} opacity={cloud.opacity}>
               <ellipse
@@ -432,7 +432,7 @@ const PresetAnimations: React.FC<PresetAnimationsProps> = ({ presetKey, width, h
 
       {/* 春の嵐 - 雷 */}
       {presetKey === 'storm' && (
-        <svg className="absolute inset-0 w-full h-full">
+        <svg className="absolute inset-0 w-full h-full" style={{ willChange: 'transform' }}>
           {lightnings.map(lightning => (
             <g key={lightning.id} opacity={lightning.opacity}>
               <path
@@ -463,6 +463,8 @@ const PresetAnimations: React.FC<PresetAnimationsProps> = ({ presetKey, width, h
       )}
     </div>
   );
-};
+});
+
+PresetAnimations.displayName = 'PresetAnimations';
 
 export default PresetAnimations;

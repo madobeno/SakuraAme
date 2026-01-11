@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { RainDrop, Ripple, NoteParticle, Theme } from '../types';
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
   theme: Theme;
 }
 
-const SakuraVisualizer: React.FC<Props> = ({ drops, ripples, particles, width, height, theme }) => {
+const SakuraVisualizer: React.FC<Props> = React.memo(({ drops, ripples, particles, width, height, theme }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -98,6 +98,8 @@ const SakuraVisualizer: React.FC<Props> = ({ drops, ripples, particles, width, h
   }, [drops, ripples, particles, width, height, theme]);
 
   return <canvas ref={canvasRef} width={width} height={height} className="absolute inset-0 pointer-events-none z-20" />;
-};
+});
+
+SakuraVisualizer.displayName = 'SakuraVisualizer';
 
 export default SakuraVisualizer;

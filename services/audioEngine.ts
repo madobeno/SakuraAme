@@ -269,7 +269,7 @@ class AudioEngine {
       this.accentTimerHandle = window.setTimeout(() => {
         if (this.accentLayerState.active && this.ctx?.state === 'running') {
           // ランダムにアクセント音を選択
-          const sounds = ['birds', 'windChime', 'wind', 'suikinkutsu'] as const;
+          const sounds = ['birds', 'windChime', 'wind', 'suikinkutsu', 'mejiro', 'frog'] as const;
           const soundType = sounds[Math.floor(Math.random() * sounds.length)];
           
           switch(soundType) {
@@ -284,6 +284,12 @@ class AudioEngine {
               break;
             case 'suikinkutsu':
               this.playSuikinkutsu(this.accentLayerState.volume);
+              break;
+            case 'mejiro':
+              this.playMejiro(this.accentLayerState.volume);
+              break;
+            case 'frog':
+              this.playFrog(this.accentLayerState.volume);
               break;
           }
         }
@@ -357,7 +363,7 @@ class AudioEngine {
     if (type === 'rain') {
       this.setBaseLayer(active, vol);
       this.setMiddleLayer(active, vol);
-    } else if (['birds', 'windChime', 'suikinkutsu', 'wind'].includes(type)) {
+    } else if (['birds', 'windChime', 'suikinkutsu', 'wind', 'mejiro', 'frog'].includes(type)) {
       this.setAmbienceLayer('accent', active, vol, 'normal');
     }
   }
@@ -685,6 +691,73 @@ class AudioEngine {
       panner.connect(this.compressor);
       osc.start(t);
       osc.stop(t + 6);
+  }
+
+  playMejiro(vol: number) {
+    if (!this.ctx || !this.compressor) return;
+    const t = this.ctx.currentTime;
+
+    // メジロの鳴き声は中央寄り
+    const panner = this.ctx.createStereoPanner();
+    panner.pan.value = (Math.random() - 0.5) * 0.4; // -0.2 〜 0.2
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.connect(gain);
+    gain.connect(panner);
+    panner.connect(this.compressor);
+
+    // メジロの特徴的な高音の鳴き声（約3000-4000Hz）
+    const baseFreq = 3200 + Math.random() * 800;
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 1.15, t + 0.1);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 0.9, t + 0.2);
+    osc.frequency.linearRampToValueAtTime(baseFreq, t + 0.3);
+
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.4, t + 0.05);
+    gain.gain.linearRampToValueAtTime(vol * 0.4, t + 0.25);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+
+    osc.start(t);
+    osc.stop(t + 0.45);
+  }
+
+  playFrog(vol: number) {
+    if (!this.ctx || !this.compressor) return;
+    const t = this.ctx.currentTime;
+
+    // カエルの鳴き声は中央寄り（やや下）
+    const panner = this.ctx.createStereoPanner();
+    panner.pan.value = (Math.random() - 0.5) * 0.5; // -0.25 〜 0.25
+
+    // カエルの特徴的な低音の鳴き声（約400-800Hz）
+    const baseFreq = 500 + Math.random() * 300;
+    const numCalls = Math.floor(Math.random() * 2) + 2; // 2-3回
+
+    for (let i = 0; i < numCalls; i++) {
+      const start = t + i * 0.3;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      
+      osc.type = 'sawtooth'; // カエルらしい音色
+      osc.frequency.setValueAtTime(baseFreq, start);
+      osc.frequency.linearRampToValueAtTime(baseFreq * 0.85, start + 0.1);
+      osc.frequency.linearRampToValueAtTime(baseFreq, start + 0.15);
+
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(vol * 0.35, start + 0.03);
+      gain.gain.linearRampToValueAtTime(vol * 0.35, start + 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.2);
+
+      osc.connect(gain);
+      gain.connect(panner);
+      panner.connect(this.compressor);
+
+      osc.start(start);
+      osc.stop(start + 0.25);
+    }
   }
 
   // 後方互換性のため残す（ただし使用しない）

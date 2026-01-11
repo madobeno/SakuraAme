@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
   Volume2, 
   VolumeX, 
@@ -186,7 +186,9 @@ const App: React.FC = () => {
       windChime: { active: false, volume: 0.2, isPremium: true },
       honeybee: { active: false, volume: 0.4, isPremium: true }, 
       thunder: { active: false, volume: 0.3, isPremium: true }, 
-      suikinkutsu: { active: false, volume: 0.4, isPremium: true }, 
+      suikinkutsu: { active: false, volume: 0.4, isPremium: true },
+      mejiro: { active: false, volume: 0.3 },
+      frog: { active: false, volume: 0.3 },
   });
 
   // 環境音ミキサー（3レイヤー）
@@ -428,6 +430,8 @@ const App: React.FC = () => {
       
       const burst: NoteParticle[] = [];
       const pCount = 6;
+      const particleColor = currentTheme.particleColor;
+      const accentColor = currentTheme.accentColor;
       for (let i = 0; i < pCount; i++) {
         burst.push({
           id: Math.random().toString(36),
@@ -439,14 +443,16 @@ const App: React.FC = () => {
               x: (Math.random() - 0.5) * 4,
               y: -1.5 - Math.random() * 2
           },
-          color: currentTheme.particleColor,
+          color: particleColor,
           size: 6 + Math.random() * 8
         });
       }
       setParticles(prev => [...prev, ...burst]);
+      triggerVisualRipple(x, y, accentColor, 10);
+    } else if (!isMuted) {
+      triggerVisualRipple(x, y, currentTheme.accentColor, 10);
     }
-    triggerVisualRipple(x, y, currentTheme.accentColor, 10);
-  }, [isMuted, currentTheme]); 
+  }, [isMuted, currentTheme.particleColor, currentTheme.accentColor]); 
 
   const spawnDrop = (noteId: string) => {
     if (isTimerFinished || document.hidden) return;
@@ -525,9 +531,16 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    if (hasStarted) requestRef.current = requestAnimationFrame(animate);
-    return () => { if (requestRef.current) cancelAnimationFrame(requestRef.current); }
-  }, [hasStarted, dimensions]);
+    if (hasStarted) {
+      requestRef.current = requestAnimationFrame(animate);
+    }
+    return () => { 
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+        requestRef.current = null;
+      }
+    };
+  }, [hasStarted, animate]);
 
   useEffect(() => {
     if (!hasStarted || isTimerFinished || rainDensity === 0 || isAutoPlaying) return;
@@ -656,7 +669,7 @@ const App: React.FC = () => {
       </div>
       <div className={`absolute ${isMobile ? 'bottom-4 right-4' : 'bottom-12 right-8'} z-40 flex flex-col items-end ${isMobile ? 'gap-3' : 'gap-5'}`}>
           {showEisho && (
-              <div className={`mb-2 bg-stone-950/20 backdrop-blur-3xl border border-white/10 rounded-3xl ${isMobile ? 'p-4 w-48' : 'p-6 w-56'} animate-in slide-in-from-right-4 shadow-[0_15px_35px_rgba(0,0,0,0.5)]`}>
+              <div className={`${isMobile ? 'mb-2 max-h-[calc(100vh-8rem)] overflow-y-auto' : 'mb-2'} bg-stone-950/20 backdrop-blur-3xl border border-white/10 rounded-3xl ${isMobile ? 'p-4 w-48' : 'p-6 w-56'} animate-in ${isMobile ? 'slide-in-from-bottom-4' : 'slide-in-from-right-4'} shadow-[0_15px_35px_rgba(0,0,0,0.5)]`}>
                   <div className={`flex justify-between items-center ${isMobile ? 'mb-4 pb-3' : 'mb-6 pb-4'} border-b border-white/10`}>
                       <h3 className={`text-white font-serif ${isMobile ? 'text-[9px]' : 'text-[10px]'} tracking-[0.3em] uppercase font-bold`}>詠唱選択</h3>
                       <button onClick={closePopups} className="text-white/50 active:text-white transition-colors"><X size={isMobile ? 14 : 16} /></button>
@@ -881,7 +894,7 @@ const App: React.FC = () => {
           </div>
       )}
       {showInstruments && (
-          <div className={`absolute ${isMobile ? 'bottom-28 left-4 right-4' : 'bottom-36 left-4 sm:left-8'} ${isMobile ? 'w-auto' : 'w-72'} bg-stone-950/10 backdrop-blur-3xl border border-white/10 rounded-3xl ${isMobile ? 'p-5' : 'p-8'} z-50 animate-in slide-in-from-bottom-4`}>
+          <div className={`absolute ${isMobile ? 'top-24 left-4 right-4 max-h-[calc(100vh-8rem)] overflow-y-auto' : 'bottom-36 left-4 sm:left-8'} ${isMobile ? 'w-auto' : 'w-72'} bg-stone-950/10 backdrop-blur-3xl border border-white/10 rounded-3xl ${isMobile ? 'p-5' : 'p-8'} z-50 animate-in ${isMobile ? 'slide-in-from-top-4' : 'slide-in-from-bottom-4'}`}>
                <div className={`flex justify-between items-center ${isMobile ? 'mb-5 pb-3' : 'mb-8 pb-4'} border-b border-white/10`}>
                   <h3 className={`text-white font-serif ${isMobile ? 'text-xs' : 'text-sm'} tracking-[0.3em] uppercase font-bold`}>Tone Selection</h3>
                   <button onClick={closePopups} className="text-white/50 active:text-white transition-colors"><X size={isMobile ? 18 : 20} /></button>
@@ -925,16 +938,25 @@ const AmbienceToggle: React.FC<{ label: string, type: AmbienceType, icon: React.
     </button>
 );
 
-const DrumButton: React.FC<{ note: Note, activeNote: string | null, spawnDrop: (id: string) => void }> = ({ note, activeNote, spawnDrop }) => {
+const DrumButton: React.FC<{ note: Note, activeNote: string | null, spawnDrop: (id: string) => void }> = React.memo(({ note, activeNote, spawnDrop }) => {
     const isActive = activeNote === note.id;
-    const petalPath = "M25 50 C 5 35, 0 10, 25 0 C 50 10, 45 35, 25 50";
-    const angle = Math.atan2(note.top - 50, note.left - 50) + Math.PI / 2;
-    const isMobile = window.innerWidth < 768;
-    const buttonSize = isMobile ? 'w-14 h-14' : 'w-16 h-16 md:w-20 md:h-20';
+    const petalPath = useMemo(() => "M25 50 C 5 35, 0 10, 25 0 C 50 10, 45 35, 25 50", []);
+    const angle = useMemo(() => Math.atan2(note.top - 50, note.left - 50) + Math.PI / 2, [note.top, note.left]);
+    const isMobile = useMemo(() => window.innerWidth < 768, []);
+    const buttonSize = useMemo(() => isMobile ? 'w-14 h-14' : 'w-16 h-16 md:w-20 md:h-20', [isMobile]);
+    
+    const handleClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+        e.stopPropagation();
+        if ('preventDefault' in e) {
+            e.preventDefault();
+        }
+        spawnDrop(note.id);
+    }, [note.id, spawnDrop]);
+    
     return (
         <button 
-            onMouseDown={(e) => { e.stopPropagation(); spawnDrop(note.id); }} 
-            onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); spawnDrop(note.id); }} 
+            onMouseDown={handleClick} 
+            onTouchStart={handleClick} 
             className="absolute pointer-events-auto transform -translate-x-1/2 -translate-y-1/2 active:scale-95 transition-transform"
             style={{ left: `${note.left}%`, top: `${note.top}%` }}
         >
@@ -945,6 +967,8 @@ const DrumButton: React.FC<{ note: Note, activeNote: string | null, spawnDrop: (
             </div>
         </button>
     );
-};
+});
+
+DrumButton.displayName = 'DrumButton';
 
 export default App;
