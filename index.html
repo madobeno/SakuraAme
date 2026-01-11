@@ -3,7 +3,15 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="description" content="Zen Healing Experience - 日本の庭園で心を癒す" />
+    <meta name="theme-color" content="#4a0417" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="桜雨" />
+    <link rel="manifest" href="/SAKURA-AME/manifest.json" />
+    <link rel="icon" type="image/png" href="/SAKURA-AME/icon-192.png" />
+    <link rel="apple-touch-icon" href="/SAKURA-AME/icon-192.png" />
     <title>桜雨: SakuraAme</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -72,12 +80,24 @@
         font-family: 'Noto Serif JP', serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        overscroll-behavior: none;
+      }
+      
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      button, a {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
       }
       
       ::-webkit-scrollbar {
         display: none;
       }
-      
+
       .grain::after {
         content: "";
         position: fixed;
@@ -91,8 +111,6 @@
         z-index: 100;
       }
     </style>
-
-  <link rel="stylesheet" href="/index.css">
     <script type="importmap">
     {
       "imports": {
@@ -105,9 +123,10 @@
       }
     }
     </script>
-  <script type="module" crossorigin src="/SAKURA-AME/assets/index-Cxyfv3MU.js"></script>
-</head>
+  </head>
   <body class="grain">
     <div id="root"></div>
-</body>
+    <script type="module" src="./index.tsx"></script>
+  </body>
 </html>
+
