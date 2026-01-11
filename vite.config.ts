@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     // リポジトリ名と完全に一致させる（大文字・小文字に注意！）
-    base: "/SAKURA-AME/", 
+    base: "/SakuraAme/", 
     plugins: [react()],
     define: {
       "process.env.GEMINI_API_KEY": JSON.stringify(env.GEMINI_API_KEY),
